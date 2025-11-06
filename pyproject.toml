@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gpt-train-data-collector"
+version = "0.1.0"
+description = "Generate RAG training datasets using GPT-based LLM prompts."
+authors = [{name = "Your Name"}]
+requires-python = ">=3.10"
+dependencies = [
+    "openai>=1.30.0",
+    "pandas>=2.1.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+]
