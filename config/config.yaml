@@ -12,3 +12,21 @@ dataset:
     너는 RAG 시스템을 위한 학습 데이터를 작성하는 전문가야. 주제와 관련된 질문과 그에 대한 답변, 그리고 답변을 생성하는데 활용할 수 있는 참고 문서를 작성해줘.
   language: "ko"
   mode: "rag"
+
+sql:
+  omop_tables:
+    - "cdm.person(person_id, gender_concept_id, year_of_birth, race_concept_id, ethnicity_concept_id)"
+    - "cdm.observation_period(person_id, observation_period_start_date, observation_period_end_date)"
+    - "cdm.visit_occurrence(visit_occurrence_id, person_id, visit_concept_id, visit_start_date, visit_end_date)"
+    - "cdm.condition_occurrence(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_type_concept_id)"
+    - "cdm.drug_exposure(drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_type_concept_id)"
+    - "cdm.procedure_occurrence(procedure_occurrence_id, person_id, procedure_concept_id, procedure_date, procedure_type_concept_id)"
+    - "cdm.measurement(measurement_id, person_id, measurement_concept_id, measurement_date, value_as_number)"
+    - "cdm.observation(observation_id, person_id, observation_concept_id, observation_date, value_as_string)"
+    - "cdm.device_exposure(device_exposure_id, person_id, device_concept_id, device_exposure_start_date)"
+    - "cdm.death(person_id, death_date, cause_concept_id)"
+  validation:
+    enabled: false
+    database_url: "postgresql://username:password@localhost:5432/omop_cdm"
+    search_path: "cdm, public"
+    statement_timeout_ms: 5000

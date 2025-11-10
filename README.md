@@ -59,6 +59,8 @@ python scripts/generate_dataset.py --config config/config.yaml
 - `reference_title`: 컨텍스트와 관련된 출처 제목 (RAG 모드)
 - `generated_sql`: 질문에 대응하는 SQL 쿼리 (SQL 모드)
 - `explanation`: SQL 쿼리 설명 (SQL 모드)
+- `sql_is_valid`: 생성된 SQL이 검증 데이터베이스에서 정상적으로 실행되는지 여부 (SQL 모드)
+- `sql_validation_error`: 검증 실패 시 PostgreSQL이 반환한 오류 메시지 (SQL 모드)
 
 ## SQL 질문/응답 데이터 수집 예시
 
@@ -73,9 +75,24 @@ dataset:
     OMOP CDM 스키마(cdm.*)를 활용하여 의료 통계를 분석하는 SQL 예제를 작성해줘.
   language: "ko"
   mode: "sql"
+
+sql:
+  omop_tables:
+    - "cdm.person(person_id, gender_concept_id, year_of_birth, race_concept_id, ethnicity_concept_id)"
+    - "cdm.visit_occurrence(visit_occurrence_id, person_id, visit_concept_id, visit_start_date, visit_end_date)"
+    - "cdm.condition_occurrence(condition_occurrence_id, person_id, condition_concept_id, condition_start_date, condition_type_concept_id)"
+    - "cdm.drug_exposure(drug_exposure_id, person_id, drug_concept_id, drug_exposure_start_date, drug_type_concept_id)"
+    - "cdm.measurement(measurement_id, person_id, measurement_concept_id, measurement_date, value_as_number)"
+  validation:
+    enabled: true
+    database_url: "postgresql://username:password@localhost:5432/omop_cdm"
+    search_path: "cdm, public"
+    statement_timeout_ms: 5000
 ```
 
-이 설정으로 실행하면 각 행에 `question`, `generated_sql`, `explanation` 열이 포함된 엑셀 파일이 생성되어 SQL 질의-응답 학습용 데이터셋을 구축할 수 있습니다.
+`sql.omop_tables` 항목은 프롬프트에 포함되어 LLM이 존재하지 않는 테이블을 사용하지 않도록 도와줍니다. 항목을 비워두면 대표적인 OMOP CDM 테이블 목록이 자동으로 사용됩니다.
+
+`sql.validation.enabled`를 `true`로 설정하면 생성된 SQL을 PostgreSQL 데이터베이스에 `EXPLAIN`으로 실행해 유효성을 확인합니다. 검증 결과는 `sql_is_valid`와 `sql_validation_error` 열로 기록됩니다.
 
 ## 주의 사항
 
