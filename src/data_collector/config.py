@@ -28,6 +28,7 @@ class DatasetConfig:
     base_topic: str
     instruction: str
     language: str = "ko"
+    mode: str = "rag"
 
 
 @dataclass
@@ -56,6 +57,7 @@ class CollectorConfig:
             base_topic=str(dataset_section.get("base_topic", "기본 주제")),
             instruction=str(dataset_section.get("instruction", "")),
             language=str(dataset_section.get("language", "ko")),
+            mode=str(dataset_section.get("mode", "rag")).lower(),
         )
         return cls(openai=openai_cfg, dataset=dataset_cfg)
 

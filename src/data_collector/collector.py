@@ -61,8 +61,22 @@ class DatasetCollector:
 
     def _build_prompt(self, index: int) -> str:
         dataset_cfg = self.config.dataset
+        if dataset_cfg.mode == "sql":
+            return (
+                "너는 의료 데이터베이스 전문가이자 SQL 튜터야. 아래 조건을 만족하는 학습 데이터를 생성해.\n"
+                f"- 주제: {dataset_cfg.base_topic}\n"
+                f"- 언어: {dataset_cfg.language}\n"
+                "- JSON 객체 하나만 출력해. 키는 question, generated_sql, explanation.\n"
+                "- question은 사용자가 자연어로 SQL을 요청하는 문장으로 작성해.\n"
+                "- generated_sql에는 질문을 해결하기 위한 실행 가능한 SQL 쿼리만 포함해.\n"
+                "- explanation에는 쿼리의 동작을 간단한 한국어 문장으로 설명해.\n"
+                "- question은 서로 중복되지 않도록 고유하게 작성해.\n"
+                f"- 데이터 세트 내 인덱스: {index}.\n"
+                f"추가 지침: {dataset_cfg.instruction.strip()}"
+            )
+
         return (
-            f"너는 전문 데이터 큐레이터야. 아래 조건을 만족하는 RAG 학습 데이터 항목을 생성해.\n"
+            "너는 전문 데이터 큐레이터야. 아래 조건을 만족하는 RAG 학습 데이터 항목을 생성해.\n"
             f"- 주제: {dataset_cfg.base_topic}\n"
             f"- 언어: {dataset_cfg.language}\n"
             "- JSON 객체 하나만 출력해. 키는 question, answer, context, reference_title.\n"
@@ -99,6 +113,14 @@ class DatasetCollector:
         except json.JSONDecodeError:
             LOGGER.debug("Payload was not pure JSON, attempting to extract JSON block.")
             data = self._extract_json(payload)
+        if self.config.dataset.mode == "sql":
+            generated_sql = data.get("generated_sql") or data.get("sql")
+            return {
+                "question": str(data.get("question", "")).strip(),
+                "generated_sql": str(generated_sql or "").strip(),
+                "explanation": str(data.get("explanation", "")).strip(),
+            }
+
         return {
             "question": str(data.get("question", "")).strip(),
             "answer": str(data.get("answer", "")).strip(),
