@@ -46,6 +46,7 @@ python scripts/generate_dataset.py --config config/config.yaml
 - `dataset.output_path`: 결과 엑셀 파일 경로를 지정합니다.
 - `dataset.base_topic`: 데이터의 기본 주제를 설정합니다.
 - `dataset.instruction`: LLM에게 부가적으로 전달하고 싶은 지침을 작성합니다.
+- `dataset.mode`: `rag`(기본값) 또는 `sql`을 지정하여 생성할 데이터 형식을 선택합니다.
 
 ## 출력 형식
 
@@ -53,9 +54,28 @@ python scripts/generate_dataset.py --config config/config.yaml
 
 - `row`: 데이터의 순번
 - `question`: 학습에 사용할 질문
-- `answer`: 질문에 대한 모범 답변
-- `context`: RAG 검색이 반환할 수 있는 참고 문단
-- `reference_title`: 컨텍스트와 관련된 출처 제목
+- `answer`: 질문에 대한 모범 답변 (RAG 모드)
+- `context`: RAG 검색이 반환할 수 있는 참고 문단 (RAG 모드)
+- `reference_title`: 컨텍스트와 관련된 출처 제목 (RAG 모드)
+- `generated_sql`: 질문에 대응하는 SQL 쿼리 (SQL 모드)
+- `explanation`: SQL 쿼리 설명 (SQL 모드)
+
+## SQL 질문/응답 데이터 수집 예시
+
+`dataset.mode`를 `sql`로 설정하면 자연어 질문과 이에 대응하는 SQL 쿼리/설명을 생성합니다. 예를 들어 `config/config.yaml`을 다음과 같이 수정할 수 있습니다.
+
+```yaml
+dataset:
+  size: 20
+  output_path: "output/sql_dataset.xlsx"
+  base_topic: "OMOP CDM 예시 쿼리"
+  instruction: |
+    OMOP CDM 스키마(cdm.*)를 활용하여 의료 통계를 분석하는 SQL 예제를 작성해줘.
+  language: "ko"
+  mode: "sql"
+```
+
+이 설정으로 실행하면 각 행에 `question`, `generated_sql`, `explanation` 열이 포함된 엑셀 파일이 생성되어 SQL 질의-응답 학습용 데이터셋을 구축할 수 있습니다.
 
 ## 주의 사항
 
