@@ -174,12 +174,9 @@ class DatasetCollector:
     def _parse_payload(self, payload: str) -> Dict[str, str]:
         try:
             data = json.loads(payload)
-        except json.JSONDecodeError as exc:
-            LOGGER.debug("Payload was not pure JSON, attempting to extract JSON block. Error: %s", exc)
-            try:
-                data = self._extract_json(payload)
-            except (ValueError, json.JSONDecodeError) as extract_exc:
-                raise ValueError(f"JSON 응답을 파싱하지 못했습니다: {extract_exc}") from extract_exc
+        except json.JSONDecodeError:
+            LOGGER.debug("Payload was not pure JSON, attempting to extract JSON block.")
+            data = self._extract_json(payload)
         if self.config.dataset.mode == "sql":
             generated_sql = data.get("generated_sql") or data.get("sql")
             item = {
