@@ -95,7 +95,11 @@ class DatasetCollector:
                 time.sleep(2.0)
                 continue
 
-            item = self._parse_payload(payload)
+            try:
+                item = self._parse_payload(payload)
+            except ValueError as exc:
+                LOGGER.warning("Skipping unparsable payload: %s", exc)
+                continue
             question = item.get("question", "").strip()
             if not question:
                 LOGGER.debug("Skipping empty question payload: %s", payload)

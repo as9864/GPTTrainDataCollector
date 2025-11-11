@@ -42,8 +42,8 @@ def main() -> None:
     items = collector.collect()
 
     writer = ExcelWriter(config.dataset.output_path)
-    writer.write(items)
-    LOGGER.info("Dataset written to %s", config.dataset.output_path)
+    output_path = writer.write(items)
+    LOGGER.info("Dataset written to %s", output_path)
 
 
 if __name__ == "__main__":
