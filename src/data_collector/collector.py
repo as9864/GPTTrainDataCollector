@@ -77,11 +77,15 @@ class DatasetCollector:
 
         results: List[Dict[str, str]] = []
         seen_questions: Set[str] = set()
+        question_history: List[str] = []
         target_size = self.config.dataset.size
         consecutive_failures = 0
 
         while len(results) < target_size:
-            prompt = self._build_prompt(index=len(results) + 1)
+            prompt = self._build_prompt(
+                index=len(results) + 1,
+                previous_questions=question_history,
+            )
             LOGGER.debug("Generated prompt: %s", prompt)
 
             try:
@@ -109,12 +113,24 @@ class DatasetCollector:
                 continue
 
             seen_questions.add(question)
+            question_history.append(question)
             results.append(item)
 
         return results
 
-    def _build_prompt(self, index: int) -> str:
+    def _build_prompt(self, index: int, previous_questions: List[str]) -> str:
         dataset_cfg = self.config.dataset
+        prior_question_guidance = ""
+        if previous_questions:
+            recent_questions = previous_questions[-20:]
+            formatted_questions = "\n".join(
+                f"  - {entry}" for entry in recent_questions
+            )
+            prior_question_guidance = (
+                "- 이미 생성된 question 목록:\n"
+                f"{formatted_questions}\n"
+                "- 위 목록과 중복되지 않도록 완전히 새로운 question을 작성해.\n"
+            )
         if dataset_cfg.mode == "sql":
             table_guidance = ""
             if self.config.sql.omop_tables:
@@ -135,6 +151,7 @@ class DatasetCollector:
                 "- question은 서로 중복되지 않도록 고유하게 작성해.\n"
                 "- 모든 테이블은 cdm.<table_name> 형태로 작성하고, 존재하는 컬럼만 사용해.\n"
                 f"{table_guidance}"
+                f"{prior_question_guidance}"
                 f"- 데이터 세트 내 인덱스: {index}.\n"
                 f"추가 지침: {dataset_cfg.instruction.strip()}"
             )
@@ -148,6 +165,7 @@ class DatasetCollector:
             "- reference_title은 context에 해당하는 간단한 출처 제목으로 작성해.\n"
             "- question은 서로 중복되지 않도록 고유하게 작성해.\n"
             "- answer는 context를 근거로 명확하게 답해.\n"
+            f"{prior_question_guidance}"
             f"- 데이터 세트 내 인덱스: {index}.\n"
             f"추가 지침: {dataset_cfg.instruction.strip()}"
         )
